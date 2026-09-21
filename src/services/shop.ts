@@ -12,11 +12,9 @@ type ListOptions = {
 
 export const productsApi = {
   list: async (options: ListOptions = {}) =>
-    (
-      await api.get<PagedResult<Product>>(
-        `/products?${queryParams({ name: options.name, categoryIds: options.categoryIds, pagination: { pageNumber: options.pageNumber ?? 1, pageSize: options.pageSize ?? 10 }, sorting: options.sorting })}`,
-      )
-    ).data,
+    api.get<PagedResult<Product>>(
+      `/products?${queryParams({ name: options.name, categoryIds: options.categoryIds, pagination: { pageNumber: options.pageNumber ?? 1, pageSize: options.pageSize ?? 10 }, sorting: options.sorting })}`,
+    ),
   create: async (body: {
     name: string;
     price: number;
@@ -24,7 +22,7 @@ export const productsApi = {
     desc?: string;
     photo?: string;
     oldPrice?: number;
-  }) => (await api.post<Product>('/products', body)).data,
+  }) => api.post<Product>('/products', body),
   update: async (
     id: string,
     body: {
@@ -35,7 +33,7 @@ export const productsApi = {
       photo?: string;
       oldPrice?: number;
     },
-  ) => (await api.put<Product>(`/products/${id}`, body)).data,
+  ) => api.put<Product>(`/products/${id}`, body),
   remove: (id: string) => api.delete(`/products/${id}`),
 };
 
@@ -45,8 +43,8 @@ export const categoriesApi = {
       await api.get<PagedResult<Category>>(
         `/categories?${queryParams({ pagination: { pageNumber: 1, pageSize: 100 } })}`,
       )
-    ).data.data,
-  create: async (body: { name: string }) => (await api.post<Category>('/categories', body)).data,
+    ).data,
+  create: (body: { name: string }) => api.post<Category>('/categories', body),
 };
 
 export const ordersApi = {
@@ -55,7 +53,7 @@ export const ordersApi = {
       await api.get<PagedResult<Order>>(
         `/orders?${queryParams({ pagination: { pageNumber: 1, pageSize: 50 } })}`,
       )
-    ).data.data,
+    ).data,
   create: (products: Array<{ id: string; quantity: number }>) =>
     api.post<Order>('/orders', { products }),
   updateStatus: (id: string, status: OrderStatus) => api.patch<Order>(`/orders/${id}`, { status }),

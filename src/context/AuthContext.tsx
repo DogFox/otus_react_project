@@ -27,8 +27,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setProfile(null);
   }, []);
   const refreshProfile = useCallback(async () => {
-    const { data } = await api.get<Profile>('/profile');
-    setProfile(data);
+    const profile = await api.get<Profile>('/profile');
+    setProfile(profile);
   }, []);
 
   useEffect(() => {
@@ -47,13 +47,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [signOut]);
 
   const authenticate = async (endpoint: '/signin' | '/signup', email: string, password: string) => {
-    const { data } = await api.post<{ token: string }>(
+    const result = await api.post<{ token: string }>(
       endpoint,
       endpoint === '/signup'
         ? { email, password, commandId: import.meta.env.VITE_COMMAND_ID ?? 'otus-shop' }
         : { email, password },
     );
-    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(TOKEN_KEY, result.token);
     await refreshProfile();
   };
   return (
