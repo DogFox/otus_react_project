@@ -12,14 +12,23 @@ import { categoriesApi, productsApi } from '../services/shop';
 import type { Category, Product } from '../types/api';
 
 const schema = z.object({
-  name: z.string().trim().min(1, 'Укажите название'),
-  price: z.number().positive('Цена должна быть больше 0'),
+  name: z.string().trim().min(1, 'Введите название'),
+  price: z.number({ error: 'Введите цену' }).positive('Цена должна быть больше нуля'),
   categoryId: z.string().min(1, 'Выберите категорию'),
   desc: z.string().optional(),
-  photo: z.string().url('Укажите корректную ссылку').or(z.literal('')).optional(),
-  oldPrice: z.number().positive().optional(),
+  photo: z.string().url('Введите корректную ссылку').or(z.literal('')).optional(),
+  oldPrice: z.number().positive('Старая цена должна быть больше нуля').optional(),
 });
 type FormValues = z.infer<typeof schema>;
+
+const emptyValues: FormValues = {
+  name: '',
+  price: undefined as unknown as number,
+  categoryId: '',
+  desc: '',
+  photo: '',
+  oldPrice: undefined,
+};
 
 export function ProductDialog({
   product,
@@ -35,25 +44,18 @@ export function ProductDialog({
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
   const {
-    register,
     handleSubmit,
     control,
     reset,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      name: '',
-      price: undefined,
-      categoryId: '',
-      desc: '',
-      photo: '',
-      oldPrice: undefined,
-    },
+    defaultValues: emptyValues,
   });
+
   useEffect(() => {
     if (!visible) return;
-    categoriesApi.list().then(setCategories);
+    void categoriesApi.list().then(setCategories);
     reset(
       product
         ? {
@@ -64,9 +66,10 @@ export function ProductDialog({
             photo: product.photo ?? '',
             oldPrice: product.oldPrice,
           }
-        : { name: '', price: undefined, categoryId: '', desc: '', photo: '', oldPrice: undefined },
+        : emptyValues,
     );
   }, [visible, product, reset]);
+
   const submit = async (values: FormValues) => {
     setSaving(true);
     try {
@@ -79,6 +82,7 @@ export function ProductDialog({
       setSaving(false);
     }
   };
+
   return (
     <Dialog
       header={product ? 'Редактировать товар' : 'Новый товар'}
@@ -86,10 +90,16 @@ export function ProductDialog({
       onHide={onHide}
       style={{ width: 'min(94vw, 560px)' }}
     >
-      <form className="form-grid" onSubmit={handleSubmit(submit)}>
+      <form className="form-grid" onSubmit={handleSubmit(submit)} noValidate>
         <label>
           Название
-          <InputText {...register('name')} invalid={!!errors.name} />
+          <Controller
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <InputText {...field} value={field.value ?? ''} invalid={!!errors.name} />
+            )}
+          />
           {errors.name && <small>{errors.name.message}</small>}
         </label>
         <label>
@@ -100,7 +110,8 @@ export function ProductDialog({
             render={({ field }) => (
               <InputNumber
                 value={field.value}
-                onValueChange={(event) => field.onChange(event.value)}
+                onValueChange={(event) => field.onChange(event.value ?? undefined)}
+                onBlur={field.onBlur}
                 mode="currency"
                 currency="RUB"
                 locale="ru-RU"
@@ -118,7 +129,8 @@ export function ProductDialog({
             render={({ field }) => (
               <Dropdown
                 value={field.value}
-                onChange={(event) => field.onChange(event.value)}
+                onChange={(event) => field.onChange(event.value ?? '')}
+                onBlur={field.onBlur}
                 options={categories}
                 optionLabel="name"
                 optionValue="id"
@@ -131,7 +143,13 @@ export function ProductDialog({
         </label>
         <label>
           Ссылка на фото
-          <InputText {...register('photo')} invalid={!!errors.photo} />
+          <Controller
+            control={control}
+            name="photo"
+            render={({ field }) => (
+              <InputText {...field} value={field.value ?? ''} invalid={!!errors.photo} />
+            )}
+          />
           {errors.photo && <small>{errors.photo.message}</small>}
         </label>
         <label>
@@ -142,17 +160,26 @@ export function ProductDialog({
             render={({ field }) => (
               <InputNumber
                 value={field.value}
-                onValueChange={(event) => field.onChange(event.value)}
+                onValueChange={(event) => field.onChange(event.value ?? undefined)}
+                onBlur={field.onBlur}
                 mode="currency"
                 currency="RUB"
                 locale="ru-RU"
+                invalid={!!errors.oldPrice}
               />
             )}
           />
+          {errors.oldPrice && <small>{errors.oldPrice.message}</small>}
         </label>
         <label className="wide">
           Описание
-          <InputTextarea {...register('desc')} rows={3} autoResize />
+          <Controller
+            control={control}
+            name="desc"
+            render={({ field }) => (
+              <InputTextarea {...field} value={field.value ?? ''} rows={3} autoResize />
+            )}
+          />
         </label>
         <div className="dialog-actions">
           <Button type="button" label="Отмена" text onClick={onHide} />
