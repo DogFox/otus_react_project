@@ -39,7 +39,7 @@ export function OrdersPage({
   };
   useEffect(load, []);
   const total = (order: Order) =>
-    order.products.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+    order.products.reduce((sum, line) => sum + (line.product?.price ?? 0) * line.quantity, 0);
   const status = (order: Order) => (
     <Dropdown
       value={order.status}
@@ -59,7 +59,7 @@ export function OrdersPage({
     <ul className="order-products">
       {order.products.map((line) => (
         <li key={line._id}>
-          {line.product.name} x {line.quantity}
+          {line.product ? line.product.name : 'Товар недоступен'} x {line.quantity}
         </li>
       ))}
     </ul>

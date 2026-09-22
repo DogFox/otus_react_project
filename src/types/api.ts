@@ -43,7 +43,7 @@ export type OrderStatus = (typeof orderStatuses)[number];
 
 export type Order = {
   id: string;
-  products: Array<{ _id: string; product: Product; quantity: number }>;
+  products: Array<{ _id: string; product: Product | null; quantity: number }>;
   user: Profile;
   status: OrderStatus;
   createdAt: string;
