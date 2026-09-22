@@ -27,7 +27,9 @@ export function CatalogPage({
 }) {
   const { profile } = useAuth();
   const { add } = useCart();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const searchTerm = params.get('search') ?? '';
+  const [search, setSearch] = useState(searchTerm);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,7 @@ export function CatalogPage({
       .list({
         pageNumber: page + 1,
         pageSize: 10,
-        name: params.get('search') ?? undefined,
+        name: searchTerm || undefined,
         categoryIds: categoryId ? [categoryId] : undefined,
         sorting: { field: sort.field, type: sort.order === 1 ? 'ASC' : 'DESC' },
       })
@@ -65,6 +67,10 @@ export function CatalogPage({
   useEffect(() => {
     void loadCategories();
   }, []);
+  useEffect(() => {
+    setSearch(searchTerm);
+    setPage(0);
+  }, [searchTerm]);
   useEffect(() => {
     load();
   }, [page, categoryId, sort, params]);
@@ -118,6 +124,11 @@ export function CatalogPage({
       )}
     </div>
   );
+  const submitSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    const nextSearch = search.trim();
+    setParams(nextSearch ? { search: nextSearch } : {});
+  };
   return (
     <section className="page">
       <div className="page-heading">
@@ -137,15 +148,16 @@ export function CatalogPage({
           </div>
         )}
       </div>
-      <div className="catalog-filters">
-        <span className="input-with-icon">
+      <form className="catalog-filters" onSubmit={submitSearch}>
+        <span className="input-with-icon catalog-search">
           <i className="pi pi-search" />
           <InputText
-            value={params.get('search') ?? ''}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
             placeholder="Поиск в верхней панели"
-            readOnly
           />
         </span>
+        <Button type="submit" label="Найти" icon="pi pi-search" />
         <Dropdown
           value={categoryId}
           onChange={(event) => {
@@ -158,7 +170,7 @@ export function CatalogPage({
           showClear
           placeholder="Все категории"
         />
-      </div>
+      </form>
       {loading ? (
         <div className="table-skeleton">
           {Array.from({ length: 6 }, (_, index) => (
