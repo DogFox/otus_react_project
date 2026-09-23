@@ -20,20 +20,3 @@ npm run preview
 ```
 
 The development server is available at the address printed by Vite after `npm run dev`.
-
-## Configuration
-
-The API base URL for the next implementation steps is:
-
-```text
-http://19429ba06ff2.vps.myjino.ru/api
-```
-
-For GitHub Pages, build with the repository path in `VITE_BASE_PATH`:
-
-```powershell
-$env:VITE_BASE_PATH = '/repository-name/'
-npm run build
-```
-
-Keep `VITE_BASE_PATH` unset for local development, where the app is served from `/`.
