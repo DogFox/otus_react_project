@@ -1,6 +1,6 @@
 import type { ServerError } from '../types/api';
 
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://19429ba06ff2.vps.myjino.ru/api';
+export const API_URL = import.meta.env.VITE_API_URL ?? 'https://19429ba06ff2.vps.myjino.ru/api';
 export const TOKEN_KEY = 'otus-shop-token';
 
 export class ApiError extends Error {
